@@ -1,0 +1,1 @@
+This is a Telegram bot aim to keep me updated about job hunting infos I customized for me with a scraper.
