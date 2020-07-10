@@ -8,6 +8,7 @@ class abstract_database():
         self.database
         self.job_collection
 
+    @abstractmethod
     def connect():
         if not is_connected:
             self.is_connected = True
@@ -17,17 +18,22 @@ class abstract_database():
         else:
             pass
 
+    @abstractmethod
     def close():
         pass
 
+    @abstractmethod
     def create():
         pass
 
+    @abstractmethod
     def read():
         pass
 
+    @abstractmethod
     def update():
         pass
 
+    @abstractmethod
     def delete():
         pass
