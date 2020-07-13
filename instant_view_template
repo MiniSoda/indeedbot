@@ -1,0 +1,11 @@
+~version: "2.0"
+
+?exists: //div[@class="jobsearch-JobInfoHeader-title-container"]
+
+title:    //div[@class="jobsearch-JobInfoHeader-title-container"]
+body:     //div[@id="jobDescriptionText"]
+
+author: $title/next-sibling::div
+
+?exists:  //div[@class="jobsearch-JobInfoHeader-expiredHeader"]
+@prepend("**This job has expired on Indeed**"): $body

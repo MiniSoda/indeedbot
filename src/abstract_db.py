@@ -7,6 +7,8 @@ class abstract_database():
         self.client
         self.database
         self.job_collection
+        self.search_collection
+        self.bot_settings_collection
 
     @abstractmethod
     def connect():

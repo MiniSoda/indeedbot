@@ -11,16 +11,12 @@ import spiderCtl
 
 spider_server = '192.168.199.151:6800'
 
-
-updater = init()
-updater.start_polling()
-
 def init():
     #admin_id = '206844774'
-    id = os.getenv('ADMINID')
+    id = os.getenv('TELE_ADMIN_ID')
     admin_id = id
     #token = '1099508397:AAGS-2gYoOa_MrKrc4Npa4SHbvPthIR4A1E'
-    token = os.getenv('TOKEN')
+    token = os.getenv('TELE_BOT_TOKEN')
 
     updater = Updater(token=token, use_context=True)
     logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -28,14 +24,16 @@ def init():
     job = updater.job_queue
     dispatcher = updater.dispatcher
 
-    start_handler = CommandHandler('start', start)
+    start_handler = CommandHandler('show overall info of bot', info)
     dispatcher.add_handler(start_handler)
 
     job_scrape = job.run_daily(callback_scrape, time(2,0,0,0, timezone(8)))
     job_post = job.run_daily(callback_post, time(9,30,0,0, timezone(8)))
     return updater
 
-def start(update, context):
+def info(update, context):
+    #spider and post schedule
+    #url list
     context.bot.send_message(chat_id=update.effective_chat.id, text="I'm a bot, please talk to me!")
 
 
@@ -50,6 +48,13 @@ def callback_post(context: telegram.ext.CallbackContext):
     #context.bot.send_message(chat_id='206844774', text='One message every minute')
 
 
+def main():
+    updater = init()
+    updater.start_polling()
+
+
+def if __name__ == "__main__":
+    main()
 
 
 
