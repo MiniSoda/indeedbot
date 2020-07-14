@@ -1,0 +1,5 @@
+{
+    "MONGO_HOST" : "beiaurum01",
+    "MONGO_PORT" : 27017,
+    "SPIDER_SERVER" : "192.168.199.151:6800"
+}

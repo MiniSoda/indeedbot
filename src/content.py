@@ -15,31 +15,35 @@ class content_manager():
     def __init__(self, database_manager):
         self.database = database_manager
         #{ job_id : job_formatted_info }
-        self.job_list = OrderedDict{}
-            
-    def get_jobs_count():
+  
+    def get_jobs_count(self):
         count = self.database_manager.get_jobs_count();
         return count
 
-    def get_jobs_count_all():
+    def get_jobs_count_all(self):
+        self.database_manager.get_jobs_count_all()
         return count
 
-    def read_daily():
-        jobs_collection = self.jobs_collection
-        days_adjust = 1
-        start = datetime.today() - timedelta(days=days_adjust)
-        end = datetime.today()
-        self.job_list = self.database_manager.get_jobs_between(start,end)
-        return self.job_list
+    def read_daily(self):
+        job_list = self.database_manager.get_jobs_today(start,end)
+        job_dict = OrderedDict()
+        for job in job_list:
+            job_dict.update({job['_id'] : self.format_job_info(job)})
+        return job_dict
 
+    def format_job_info(self, job):
+        view_content = '###{title}\n{company}\{location}, {region}\n{summary}\n(More Detain)[{url}]'.format( title = job['title'], 
+                company = job['company'], 
+                location = job['location'], 
+                region = job['region'], 
+                summary = job['summary'], 
+                url = format_url(job['url']))
+        return view_content
 
-    def format_job_info(job):
-        view_content = '###{title}\n{company}\{location}, {region}\n{summary}\n(More Detain)[{url}]'.format( title = job.title, 
-                company = job.company, 
-                location = job.location, 
-                region = job.region, 
-                summary = job.summary, 
-                url = format_url(job.url))
-
-    def format_url(url):
+    def format_url(self, url):
         return url_template.format(job_url = urllib.parse.quote(url))
+
+    def publish_content(self):
+        job_dict = self.read_daily()
+        return job_dict
+
