@@ -33,9 +33,9 @@ class database_manager():
     def get_job_count_today(self):
         job_daily_list = []
         days_adjust = 1
-        start = datetime.today() - timedelta(days=days_adjust)
+        start = datetime.today() - datetime.timedelta(days=days_adjust)
         end = datetime.today()
-        job_daily_list = get_jobs_between(start, end)
+        job_daily_list = self.get_jobs_between(start, end)
         return len(job_daily_list)
 
 
@@ -45,16 +45,16 @@ class database_manager():
 
     def get_jobs_today(self):
         days_adjust = 1
-        start = datetime.today() - timedelta(days=days_adjust)
+        start = datetime.today() - datetime.timedelta(days=days_adjust)
         end = datetime.today()
-        job_daily_list = get_jobs_between(start, end)
+        job_daily_list = self.get_jobs_between(start, end)
         return job_daily_list
 
 
     def get_jobs_between(self, start, end):
         #check start, end validity
         job_list = []
-        for job in self.jobs_collection.find({'real_pub_date': {'$lt': end, '$gte': start}}):
+        for job in self.job_collection.find({'real_pub_date': {'$lt': end, '$gte': start}}):
             job_list.append(job)
         return job_list
 
@@ -78,8 +78,7 @@ class database_manager():
 
 
     def set_scrawler_urls(self):
-        cursor = self.bot_settings_collection.find_and_update({'name':'scrawler_schedule'})
-
+        pass
 
     #schedule : '0300' string stands for a timepoint 03:00
     def set_scrawler_schedule(self, schedule):
