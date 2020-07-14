@@ -40,7 +40,7 @@ class telegram_bot():
         publish_min = int(publish_time[2:])
 
         job_scrape = job.run_daily(self.callback_scrape, time(scrawler_hour,scrawler_min,0,0))
-        job_post = job.run_daily(self.callback_publish, time(18,17,0,0))
+        job_post = job.run_daily(self.callback_publish, time(publish_hour,publish_min,0,0))
     
     def info(self, update, context):
         if update.effective_chat.id != self.admin_id:
