@@ -1,6 +1,7 @@
 import os
 import json
 import logging
+from datetime import datetime
 from datetime import time
 from datetime import timezone
 
@@ -21,11 +22,13 @@ class telegram_bot():
     def telegram_init(self):
         self.admin_id = os.getenv('TELE_ADMIN_ID')
         self.token = os.getenv('TELE_BOT_TOKEN')
+        self.admin_id = 206844774
+        self.token = '1099508397:AAGS-2gYoOa_MrKrc4Npa4SHbvPthIR4A1E'
 
         self.updater = Updater(token=self.token, use_context=True)
         logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
                             level=logging.INFO)
-        job = self.updater.job_queue
+        self.job = self.updater.job_queue
         dispatcher = self.updater.dispatcher
 
         start_handler = CommandHandler('info', self.info)
@@ -43,16 +46,17 @@ class telegram_bot():
         job_post = job.run_daily(self.callback_publish, time(publish_hour,publish_min,0,0))
     
     def info(self, update, context):
+        clock = datetime.now()
         if update.effective_chat.id != self.admin_id:
-            message = "I'm job hunting bot, please don't talk to me unless you are admin!"
+            message = "I'm job hunting bot, please don't talk to me unless you are admin! , it's " + clock.strftime("%H:%M:%S")
         else:
-            message = "Hi MiniSoda"
-        context.bot.send_message(chat_id=update.effective_chat.id, text=message)
+            message = "Hi MiniSoda, it's " + clock.strftime("%H:%M:%S") + " [inline URL](http://www.example.com)"
+        context.bot.send_message(chat_id=update.effective_chat.id, text=message, parse_mode='MarkdownV2')
 
     def callback_scrape(self, context: telegram.ext.CallbackContext):
         status, content = spider.spider_run(self.spider_server)
         if status != 200 :
-            context.bot.send_message(chat_id=self.admin_id, text='spider error: ' + content)
+            context.bot.send_message(chat_id=self.admin_id, text='spider error: ' + content, parse_mode='MarkdownV2')
 
     def callback_publish(self, context: telegram.ext.CallbackContext):
         for job_id, job_detail in self.content_manager.publish_content():

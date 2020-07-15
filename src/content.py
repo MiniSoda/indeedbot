@@ -17,27 +17,26 @@ class content_manager():
         #{ job_id : job_formatted_info }
   
     def get_jobs_count(self):
-        count = self.database_manager.get_jobs_count();
+        count = self.database.get_jobs_count()
         return count
 
     def get_jobs_count_all(self):
-        self.database_manager.get_jobs_count_all()
-        return count
+        return self.database.get_jobs_count_all()
 
     def read_daily(self):
-        job_list = self.database_manager.get_jobs_today(start,end)
+        job_list = self.database.get_jobs_today()
         job_dict = OrderedDict()
         for job in job_list:
             job_dict.update({job['_id'] : self.format_job_info(job)})
         return job_dict
 
     def format_job_info(self, job):
-        view_content = '###{title}\n{company}\{location}, {region}\n{summary}\n(More Detain)[{url}]'.format( title = job['title'], 
+        view_content = r'###{title}\n{company}\{location}, {region}\n{summary}\n(More Detain)[{url}]'.format( title = job['title'], 
                 company = job['company'], 
                 location = job['location'], 
                 region = job['region'], 
                 summary = job['summary'], 
-                url = format_url(job['url']))
+                url = self.format_url(job['url']))
         return view_content
 
     def format_url(self, url):
