@@ -1,10 +1,11 @@
 from datetime import datetime
 from datetime import timedelta
 from pymongo import MongoClient
+from content import content_manager
 
 client = MongoClient(host="beiaurum01", port=27017)
 database = client["indeed_spider"]
-collection = database["search_criteria"]
+collection = database["jobs"]
 
 #collection.update({}, {"$set": {"inuse": True}}, multi= True)
 """
@@ -26,8 +27,20 @@ job_collection = database["jobs"]
 for job in job_collection.find( {'real_pub_date': {'$lt': end, '$gte': start}}):
     print(job)
 
-"""
+
 clock = datetime.now()
 time = clock.strftime("%H:%M:%S")
 print("time:", time)
 message = "Hi MiniSoda, it's " + time
+
+
+days_adjust = 1
+start = datetime.today() - timedelta(days=days_adjust)
+end = datetime.today()
+cursors = collection.find({'real_pub_date': {'$lte': end, '$gt': start}})
+for job in cursors:
+    print(job)
+
+"""
+
+datetime.today()

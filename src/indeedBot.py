@@ -3,6 +3,7 @@ import json
 import logging
 from datetime import datetime
 from datetime import time
+from datetime import timedelta
 from datetime import timezone
 
 import telegram.ext
@@ -25,7 +26,13 @@ class telegram_bot():
         self.admin_id = 206844774
         self.token = '1099508397:AAGS-2gYoOa_MrKrc4Npa4SHbvPthIR4A1E'
 
-        self.updater = Updater(token=self.token, use_context=True)
+        """
+        REQUEST_KWARGS={
+            # "USERNAME:PASSWORD@" is optional, if you need authentication:
+            'proxy_url': 'http://10.100.0.195:8118/',
+        }
+        self.updater = Updater(token=self.token, request_kwargs=REQUEST_KWARGS, use_context=True)
+        """
         logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
                             level=logging.INFO)
         self.job = self.updater.job_queue
@@ -34,33 +41,44 @@ class telegram_bot():
         start_handler = CommandHandler('info', self.info)
         dispatcher.add_handler(start_handler)
 
-        scrawler_time = self.database.get_scrawler_schedule()
-        scrawler_hour = int(scrawler_time[:2])
-        scrawler_min = int(scrawler_time[2:])
+        start_handler = CommandHandler('pull', self.manual_publish)
+        dispatcher.add_handler(start_handler)
 
-        publish_time = self.database.get_publish_schedule()
-        publish_hour = int(publish_time[:2])
-        publish_min = int(publish_time[2:])
+        scrawler_hour, scrawler_min = self.database.get_scrawler_schedule()
+        publish_hour, publish_min = self.database.get_publish_schedule()
 
-        job_scrape = job.run_daily(self.callback_scrape, time(scrawler_hour,scrawler_min,0,0))
-        job_post = job.run_daily(self.callback_publish, time(publish_hour,publish_min,0,0))
+        target_tzinfo = timezone(timedelta(hours=8))
+        scrawler_time = datetime.time(hour=scrawler_hour, minute = scrawler_min).replace(tzinfo=target_tzinfo)
+        publish_time = datetime.time(hour=publish_hour, minute = publish_min).replace(tzinfo=target_tzinfo)
+        
+        self.job.run_daily(self.callback_scrape, scrawler_time)
+        self.job.run_daily(self.callback_publish, publish_time)
     
     def info(self, update, context):
         clock = datetime.now()
         if update.effective_chat.id != self.admin_id:
-            message = "I'm job hunting bot, please don't talk to me unless you are admin! , it's " + clock.strftime("%H:%M:%S")
+            message = "I'm a job hunting bot, please don't talk to me unless you are admin! , it's " + clock.strftime("%H:%M:%S")
         else:
-            message = "Hi MiniSoda, it's " + clock.strftime("%H:%M:%S") + " [inline URL](http://www.example.com)"
-        context.bot.send_message(chat_id=update.effective_chat.id, text=message, parse_mode='MarkdownV2')
+            message = "Hi MiniSoda, it's " + clock.strftime("%H:%M:%S") + "\n[inline URL](http://www.example.com)"
+        context.bot.send_message(chat_id=update.effective_chat.id, text=message, parse_mode=telegram.ParseMode.MARKDOWN_V2)
+    
+    def manual_publish(self, update, context):
+        try:
+            for job_id, job_detail in self.content_manager.publish_content().items():
+                context.bot.send_message(chat_id=self.admin_id, text=job_detail, parse_mode=telegram.ParseMode.MARKDOWN_V2)
+        except TelegramError.BadRequest(message):
+            print(message)
 
     def callback_scrape(self, context: telegram.ext.CallbackContext):
         status, content = spider.spider_run(self.spider_server)
         if status != 200 :
-            context.bot.send_message(chat_id=self.admin_id, text='spider error: ' + content, parse_mode='MarkdownV2')
+            context.bot.send_message(chat_id=self.admin_id, text='spider error: ' + content, parse_mode=telegram.ParseMode.MARKDOWN_V2)
+        else:
+            print('spider spawned')
 
     def callback_publish(self, context: telegram.ext.CallbackContext):
-        for job_id, job_detail in self.content_manager.publish_content():
-            context.bot.send_message(chat_id=self.admin_id, text=job_detail)
+        for job_id, job_detail in self.content_manager.publish_content().items():
+            context.bot.send_message(chat_id=self.admin_id, text=job_detail, parse_mode=telegram.ParseMode.MARKDOWN_V2)
     
     def run(self):
         self.updater.start_polling()

@@ -1,6 +1,7 @@
 import os
 import json
 from datetime import datetime
+from datetime import timedelta
 
 from pymongo import MongoClient
 
@@ -8,13 +9,6 @@ class database_manager():
     def __init__(self, database_settings):
         self.database_settings = database_settings
         self.is_connected = False
-        """
-        self.client
-        self.database
-        self.job_collection
-        self.search_collection
-        self.bot_settings_collection
-        """
         self.__connect__()
         
 
@@ -23,7 +17,7 @@ class database_manager():
             self.is_connected = True
             self.client = MongoClient(host=self.database_settings['MONGO_HOST'], port=self.database_settings['MONGO_PORT'])
             self.database = self.client['indeed_spider']
-            self.job_collection = self.database['job']
+            self.job_collection = self.database['jobs']
             self.search_collection = self.database['search_criteria']
             self.bot_settings_collection = self.database['telegram_bot_setting']
         else:
@@ -33,7 +27,7 @@ class database_manager():
     def get_job_count_today(self):
         job_daily_list = []
         days_adjust = 1
-        start = datetime.today() - datetime.timedelta(days=days_adjust)
+        start = datetime.today() - timedelta(days=days_adjust)
         end = datetime.today()
         job_daily_list = self.get_jobs_between(start, end)
         return len(job_daily_list)
@@ -45,7 +39,7 @@ class database_manager():
 
     def get_jobs_today(self):
         days_adjust = 1
-        start = datetime.today() - datetime.timedelta(days=days_adjust)
+        start = datetime.today() - timedelta(days=days_adjust)
         end = datetime.today()
         job_daily_list = self.get_jobs_between(start, end)
         return job_daily_list
@@ -54,19 +48,26 @@ class database_manager():
     def get_jobs_between(self, start, end):
         #check start, end validity
         job_list = []
-        for job in self.job_collection.find({'real_pub_date': {'$lt': end, '$gte': start}}):
+        cursors = self.job_collection.find({'real_pub_date': {'$gt': start, '$lte': end}})
+        for job in cursors:
             job_list.append(job)
         return job_list
 
 
     def get_scrawler_schedule(self):
         cursor = self.bot_settings_collection.find({'name':'scrawler_schedule'})
-        return cursor[0]['schedule']
+        scrawl_time = cursor[0]['schedule']
+        scrawler_hour = int(scrawl_time[:2])
+        scrawler_min = int(scrawl_time[2:])
+        return scrawler_hour, scrawler_min
 
 
     def get_publish_schedule(self):
         cursor = self.bot_settings_collection.find({'name':'publish_schedule'})
-        return cursor[0]['schedule']
+        publish_time = cursor[0]['schedule']
+        publish_hour = int(publish_time[:2])
+        publish_min = int(publish_time[2:])
+        return publish_hour, publish_min
 
 
     def get_scrawler_urls(self):
