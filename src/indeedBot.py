@@ -23,16 +23,8 @@ class telegram_bot():
     def telegram_init(self):
         self.admin_id = os.getenv('TELE_ADMIN_ID')
         self.token = os.getenv('TELE_BOT_TOKEN')
-        self.admin_id = 206844774
-        self.token = '1099508397:AAGS-2gYoOa_MrKrc4Npa4SHbvPthIR4A1E'
-
-        """
-        REQUEST_KWARGS={
-            # "USERNAME:PASSWORD@" is optional, if you need authentication:
-            'proxy_url': 'http://10.100.0.195:8118/',
-        }
-        self.updater = Updater(token=self.token, request_kwargs=REQUEST_KWARGS, use_context=True)
-        """
+        
+        self.updater = Updater(token=self.token, use_context=True)
         logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
                             level=logging.INFO)
         self.job = self.updater.job_queue
@@ -63,11 +55,9 @@ class telegram_bot():
         context.bot.send_message(chat_id=update.effective_chat.id, text=message, parse_mode=telegram.ParseMode.MARKDOWN_V2)
     
     def manual_publish(self, update, context):
-        try:
-            for job_id, job_detail in self.content_manager.publish_content().items():
-                context.bot.send_message(chat_id=self.admin_id, text=job_detail, parse_mode=telegram.ParseMode.MARKDOWN_V2)
-        except TelegramError.BadRequest(message):
-            print(message)
+        for job_id, job_detail in self.content_manager.publish_content().items():
+            context.bot.send_message(chat_id=self.admin_id, text=job_detail, parse_mode=telegram.ParseMode.MARKDOWN_V2)
+
 
     def callback_scrape(self, context: telegram.ext.CallbackContext):
         status, content = spider.spider_run(self.spider_server)
