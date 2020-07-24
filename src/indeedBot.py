@@ -40,8 +40,8 @@ class telegram_bot():
         publish_hour, publish_min = self.database.get_publish_schedule()
 
         target_tzinfo = timezone(timedelta(hours=8))
-        scrawler_time = datetime.time(hour=scrawler_hour, minute = scrawler_min).replace(tzinfo=target_tzinfo)
-        publish_time = datetime.time(hour=publish_hour, minute = publish_min).replace(tzinfo=target_tzinfo)
+        scrawler_time = time(hour=scrawler_hour, minute = scrawler_min).replace(tzinfo=target_tzinfo)
+        publish_time = time(hour=publish_hour, minute = publish_min).replace(tzinfo=target_tzinfo)
         
         self.job.run_daily(self.callback_scrape, scrawler_time)
         self.job.run_daily(self.callback_publish, publish_time)
@@ -74,7 +74,7 @@ class telegram_bot():
         self.updater.start_polling()
 
 def main():
-    with open('src/database.json', 'r') as f:
+    with open('/etc/telebot/database.json', 'r') as f:
         settings = json.load(f)
     bot = telegram_bot(settings)
     bot.telegram_init()
